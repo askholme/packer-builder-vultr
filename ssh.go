@@ -1,3 +1,5 @@
+package main
+
 import (
 	"code.google.com/p/go.crypto/ssh"
 	"fmt"
@@ -12,10 +14,11 @@ func sshAddress(state multistep.StateBag) (string, error) {
 
 func sshConfig(state multistep.StateBag) (*ssh.ClientConfig, error) {
 	config := state.Get("config").(config)
-  clientConfig = ssh.ClientConfig{User: config.SSHUsername}
+  clientConfig := ssh.ClientConfig{User: config.SSHUsername}
   if (config.OsSnapshot == "" && config.IpxeUrl == "" ) {
     // default case where vultr generated the password
-    clientConfig.Auth = []ssh.AuthMethod{ssh.Password(state.Get("default_password")),}
+    password := state.Get("default_password").(string)
+    clientConfig.Auth = []ssh.AuthMethod{ssh.Password(password),}
   } else if (config.SSHPassword != "") {
     // special case but we got a password
     clientConfig.Auth = []ssh.AuthMethod{ssh.Password(config.SSHPassword),}

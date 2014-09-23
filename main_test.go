@@ -427,5 +427,3 @@ func TestBuilderPrepare_SnapshotName(t *testing.T) {
 	}
 
 }
-
-}

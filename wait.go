@@ -6,18 +6,17 @@ import (
   "github.com/askholme/vultr"
 )
 
-type ret struct {
+type retStruct struct {
   err error
-  info *vult.Server
+  info *vultr.Server
 }
-
 
 // waitForState simply blocks until the droplet is in
 // a state we expect, while eventually timing out.
 func waitForServerState(state string,power string, serverId string, client *vultr.Client, timeout time.Duration) (*vultr.Server,error) {
 	done := make(chan struct{})
 	defer close(done)
-	result := make(chan ret{}, 1)
+	result := make(chan retStruct, 1)
   go func() {
       attempts := 0
   		for {
@@ -25,11 +24,11 @@ func waitForServerState(state string,power string, serverId string, client *vult
   			log.Printf("Checking server status... (attempt: %d)", attempts)
   			serverInfo, err := client.GetServer(serverId)
   			if err != nil {
-  				result <- ret{err,nil}
+  				result <- retStruct{err,nil}
   				return
   			}
-  			if serverInfo.Status == state && (serverinfo.Power == power || power == "") {
-  				result <- ret{nil,&serverInfo}
+  			if serverInfo.Status == state && (serverInfo.Power == power || power == "") {
+  				result <- retStruct{nil,serverInfo}
           return
   			}
 
@@ -55,7 +54,7 @@ func waitForServerState(state string,power string, serverId string, client *vult
 		return nil,err
 	}
 }
-func waitForSnapshotState(state string, snapshotId string, client *vultr.Client, timeout time.Duration) (*vultr.Server,error) {
+func waitForSnapshotState(state string, snapshotId string, client *vultr.Client, timeout time.Duration) (error) {
 	done := make(chan struct{})
 	defer close(done)
 	result := make(chan error, 1)
@@ -90,9 +89,9 @@ func waitForSnapshotState(state string, snapshotId string, client *vultr.Client,
 	log.Printf("Waiting for up to %d seconds for snapshot", timeout/time.Second)
 	select {
 	case retval := <-result:
-		return retval.info,retval.err
+		return retval
 	case <-time.After(timeout):
 		err := fmt.Errorf("Timeout while waiting to for snapshot")
-		return nil,err
+		return err
 	}
 }

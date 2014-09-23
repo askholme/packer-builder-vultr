@@ -3,27 +3,19 @@ import (
 	"fmt"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-  "time"
+  "github.com/askholme/vultr"
 )
 
 type stepServerInfo struct{}
 
 func (s *stepServerInfo) Run(state multistep.StateBag) multistep.StepAction {
-	client := state.Get("client").(*DigitalOceanClient)
+	client := state.Get("client").(*vultr.Client)
 	ui := state.Get("ui").(packer.Ui)
 	c := state.Get("config").(config)
 	serverId := state.Get("server_id").(string)
 
 	ui.Say("Waiting for server to be powered on...")
-  type waitOpts struct {
-    state       string
-    power       string
-    serverId    string
-    client      *vultr.Client
-    serverIp    string
-    serverPort  int
-  }
-	serverInfo, err := waitForServerState("active","running",serverId,%client, c.stateTimeout)
+	serverInfo, err := waitForServerState("active","running",serverId, client, c.stateTimeout)
 	if err != nil {
 		err := fmt.Errorf("Error waiting for server to be running: %s", err)
 		state.Put("error", err)

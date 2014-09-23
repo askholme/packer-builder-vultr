@@ -9,13 +9,13 @@ import (
   "github.com/askholme/vultr"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
-	"github.com/mitchellh/packer/common/uuid"
+//	"github.com/mitchellh/packer/common/uuid"
 	"github.com/mitchellh/packer/packer"
 	"github.com/mitchellh/packer/packer/plugin"
 )
-const defaultOs = ""
-const defaultPlan = ""
-const defaultRegion = ""
+const DefaultOs = "Debian 7 x64 (wheezy)"
+const DefaultPlan = "768 MB RAM,15 GB SSD,0.20 TB BW"
+const DefaultRegion = "Atlanta"
 const BuilderId = "askholme.vultr"
 
 type config struct {
@@ -33,7 +33,7 @@ type config struct {
     IPv6              bool    `mapstructure:"IPv6"`    
   	SSHUsername       string  `mapstructure:"ssh_username"`
     SSHPassword       string  `mapstructure:"ssh_password"`
-    SSHPrivatekey     string  `mapstructure:"ssh_key"`
+    SSHPrivateKey     string  `mapstructure:"ssh_key"`
   	SSHPort           uint    `mapstructure:"ssh_port"`
     
   	RawSSHTimeout   string    `mapstructure:"ssh_timeout"`
@@ -116,13 +116,11 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		"plan":          &b.config.Plan,
 		"os":            &b.config.Os,
     "snapshot":      &b.config.OsSnapshot,
-    "private_net":   &b.config.PrivateNetworking,
-    "ipv6":          &b.config.IPv6,
 		"api_key":       &b.config.APIKey,
 		"snapshot_name": &b.config.SnapshotName,
 		"ssh_username":  &b.config.SSHUsername,
     "ssh_password":  &b.config.SSHPassword,
-    "ssh_privatekey":&b.config.SSHPrivateKey 
+    "ssh_privatekey":&b.config.SSHPrivateKey,
 		"ssh_timeout":   &b.config.RawSSHTimeout,
 		"state_timeout": &b.config.RawStateTimeout,
 	}
@@ -167,8 +165,10 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
 	// Initialize the DO API client
-	client := vultr.NewClient(b.config.APIKey)
-
+	client,err := vultr.NewClient(b.config.APIKey)
+  if err != nil {
+    return nil,err
+  }
 	// Set up the state
 	state := new(multistep.BasicStateBag)
 	state.Put("config", b.config)
@@ -187,7 +187,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		},
 		new(common.StepProvision),
 		new(stepHalt),
-		new(stepSnapshot)
+		new(stepSnapshot),
 	}
 
 	// Run the steps
@@ -212,17 +212,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		return nil, nil
 	}
 
-	sregion := state.Get("region")
-
 	var region string
-
-	if sregion != nil {
-		region = sregion.(string)
-	} else {
-		region = fmt.Sprintf("%v", state.Get("region_id").(uint))
-	}
-
-	found_region, err := client.Region(region)
+  //  GetId ensures we have an idea and then we get the label. We ignore errors because they would have shown earlier
+  region_id,_ := client.Params.GetId("region",b.config.Region)
+  region,_ = client.Params.GetLabel("region",region_id)
 
 	if err != nil {
 		return nil, err
@@ -230,8 +223,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	artifact := &Artifact{
 		snapshotName: state.Get("snapshot_name").(string),
-		snapshotId:   state.Get("snapshot_id").(uint),
-		regionName:   found_region.Name,
+		snapshotId:   state.Get("snapshot_id").(string),
+		regionName:   region,
 		client:       client,
 	}
 	return artifact, nil

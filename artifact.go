@@ -9,7 +9,7 @@ type Artifact struct {
 	// The name of the snapshot
 	snapshotName string
 	// The ID of the image
-	snapshotId uint
+	snapshotId string
 	// The name of the region
 	regionName string
 
@@ -22,7 +22,7 @@ func (*Artifact) BuilderId() string {
 }
 
 func (*Artifact) Files() []string {
-	// No files with DigitalOcean
+	// No files with Vultr
 	return nil
 }
 
