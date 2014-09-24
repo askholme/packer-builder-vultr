@@ -1,6 +1,8 @@
 # Vultr builder for packer
 
-a packer plugin enabling building of vultr snapshots.
+See Bintray.md for binary downloads
+
+a packer plugin enabling building of vultr snapshots. 
 The code structure etc. borrows heavily from the packer digitalocean plugin. 
 
 Communication with Vultr is done using the go API from github.com/askholme/vultr
