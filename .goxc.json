@@ -1,0 +1,16 @@
+{
+	"ArtifactsDest": "downloads/",
+	"Tasks": [
+		"xc"
+	],
+	"BuildConstraints": "windows,linux,freebsd,!arm,!solaris",
+	"TaskSettings": {
+		"bintray": {
+			"downloadspage": "bintray.md",
+			"package": "packer-builder-vultr",
+			"repository": "packer-vultr",
+			"subject": "askholme"
+		}
+	},
+	"ConfigVersion": "0.9"
+}
