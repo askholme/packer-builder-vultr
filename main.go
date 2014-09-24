@@ -9,19 +9,17 @@ import (
   "github.com/askholme/vultr"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
-//	"github.com/mitchellh/packer/common/uuid"
 	"github.com/mitchellh/packer/packer"
 	"github.com/mitchellh/packer/packer/plugin"
 )
 const DefaultOs = "Debian 7 x64 (wheezy)"
-const DefaultPlan = "768 MB RAM,15 GB SSD,0.20 TB BW"
+const DefaultPlan = "768 MB RAM,15 GB SSD,1.00 TB BW"
 const DefaultRegion = "Atlanta"
 const BuilderId = "askholme.vultr"
 
 type config struct {
     common.PackerConfig       `mapstructure:",squash"`
   	APIKey            string  `mapstructure:"api_key"`
-  	APIURL            string  `mapstructure:"api_url"`
   	Region            string  `mapstructure:"region"`
   	Plan              string  `mapstructure:"plan"`
   	Os                string  `mapstructure:"os"`
@@ -36,8 +34,8 @@ type config struct {
     SSHPrivateKey     string  `mapstructure:"ssh_key"`
   	SSHPort           uint    `mapstructure:"ssh_port"`
     
-  	RawSSHTimeout   string    `mapstructure:"ssh_timeout"`
-  	RawStateTimeout string    `mapstructure:"state_timeout"`
+  	RawSSHTimeout     string    `mapstructure:"ssh_timeout"`
+  	RawStateTimeout   string    `mapstructure:"state_timeout"`
 
   	// These are unexported since they're set by other fields
   	// being set.
@@ -186,6 +184,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			SSHWaitTimeout: 15 * time.Minute,
 		},
 		new(common.StepProvision),
+    new(stepShutdown),
 		new(stepHalt),
 		new(stepSnapshot),
 	}

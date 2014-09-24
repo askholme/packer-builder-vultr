@@ -33,7 +33,7 @@ func (s *stepHalt) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionContinue
 	}
   
-	// Pull the plug on the Droplet
+	// Pull the plug on the Server
 	ui.Say("Forcefully shutting down Server...")
 	err = client.HaltServer(serverId)
 	if err != nil {
