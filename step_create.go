@@ -4,6 +4,7 @@ import (
   "github.com/askholme/vultr"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
+  "github.com/mitchellh/packer/common/uuid"
 )
 
 type stepCreateServer struct {
@@ -14,9 +15,20 @@ func (s *stepCreateServer) Run(state multistep.StateBag) multistep.StepAction {
 	client := state.Get("client").(*vultr.Client)
 	ui := state.Get("ui").(packer.Ui)
 	c := state.Get("config").(config)
-
+  var keyId string
+  var err error
+  if c.SSHPrivateKey != "" {
+    ui.Say("Uploading SSH key")
+    name := fmt.Sprintf("packer-%s", uuid.TimeOrderedUUID())
+    keyId,err = client.CreateSSHKey(name,c.SSHPrivateKey)
+    if err != nil {
+  		err := fmt.Errorf("Error uploading ssh key: %s", err)
+  		state.Put("error", err)
+  		ui.Error(err.Error())
+  		return multistep.ActionHalt
+    }
+  }
 	ui.Say("Creating server...")
-
 	// Create the droplet based on configuration
   opts := client.CreateOpts()
   opts.Region = c.Region
@@ -25,6 +37,9 @@ func (s *stepCreateServer) Run(state multistep.StateBag) multistep.StepAction {
   opts.PrivateNet = c.PrivateNetworking
   opts.IpV6 = c.IPv6
   opts.IpxeUrl = c.IpxeUrl
+  if c.SSHPrivateKey != "" {
+    opts.SSHKeyId = keyId
+  }
   serverId,err := client.CreateServer(&opts)
 
 	if err != nil {
