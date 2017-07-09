@@ -1,3 +1,5 @@
+# DEPRECATED - PLEASE USE https://github.com/dradtke/packer-builder-vultr FOR COMPATIBLITY WITH CURRENT PACKER VERSIONS
+
 # Vultr builder for packer
 
 See Bintray.md for binary downloads
